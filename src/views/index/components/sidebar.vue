@@ -11,7 +11,7 @@
     <li @click="router.push('Web3Shop')"><i class="nav-icon-3" />Web3 {{ lang('商城') }}</li>
     <li @click="router.push('stat')"><i class="nav-icon-4" />{{ lang('算力统计') }}</li>
     <li @click="router.push('wallet')"><i class="nav-icon-5" />{{ lang('我的资产') }}</li>
-    <li @click="router.push('level')"><i class="nav-icon-6" />{{ lang('等级权益') }}</li>
+    <!-- <li @click="router.push('level')"><i class="nav-icon-6" />{{ lang('等级权益') }}</li> -->
     <li @click="router.push('community')"><i class="nav-icon-7" />{{ lang('社群建设') }}</li>
     <li @click="openLink('https://www.playgamefrane.com/game/')"><i class="nav-icon-8" />{{ lang('魔晶农场') }}</li>
     <li @click="showToast(lang('暂未开通'))"><i class="nav-icon-9" />{{ lang('资产跨链') }}</li>
