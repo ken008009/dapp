@@ -52,6 +52,40 @@
         </div> -->
       </div>
     </div>
+    <div className="team-deposit-list">
+      <div className="team-deposit-title">{{ lang('团队充值') }} ({{ depositCount }}{{ lang('条') }})</div>
+      <div className="team-deposit-table">
+        <div className="table-header" v-if="depositList.length > 0">
+          <div className="table-row">
+            <span>{{ lang('地址') }}</span>
+            <span>{{ lang('金额') }}</span>
+            <span>{{ lang('日期') }}</span>
+          </div>
+        </div>
+        <div className="table-body">
+          <div className="table-row" v-for="(item, index) in depositList" :key="index">
+            <span>{{ formatAddress(item.address) }}</span>
+            <span>{{ item.amount }}</span>
+            <span>{{ item.createdAt }}</span>
+          </div>
+        </div>
+        <div className="empty" v-if="depositList.length === 0">
+          <img :src="emptyImage" />
+          <div className="empty-text">{{ lang('暂无数据') }}</div>
+        </div>
+      </div>
+      <div className="team-deposit-pagination" v-if="depositList.length > 0">
+        <!-- <span className="page-size-text">
+          {{ lang('每页') }} {{ depositPageSize }}{{ lang('条') }} · {{ lang('本页') }} {{ depositList.length }}{{ lang('条') }}
+        </span> -->
+        <Pagination
+          v-model="depositPage"
+          :page-count="depositAllPageCount"
+          mode="simple"
+          @change="getTeamDepositList"
+        />
+      </div>
+    </div>
   </div>
 </div>
 </template>
@@ -59,10 +93,11 @@
 import userPerson from "@/pinia/person";
 import { useRouter } from 'vue-router'
 import { ref, computed } from 'vue'
-import { showToast } from 'vant'
+import { showToast, Pagination } from 'vant'
 import request from "@/tools/request";
 import lang from '@/i18n/index'
 import copy from 'copy-to-clipboard';
+import emptyImage from '../../assets/images/custom-empty-image.png'
 
 const router = useRouter()
 const person = userPerson();
@@ -138,6 +173,23 @@ const getUserArea = async () => {
 }
 
 getUserArea()
+
+const depositList = $ref([])
+const depositCount = $ref(0)
+const depositPage = $ref(1)
+const depositAllPageCount = $ref(1)
+const depositPageSize = 20
+
+const getTeamDepositList = async (page = 1) => {
+  const res = await request.get("app_server/user_team_deposit_list", {
+    params: { page }
+  })
+  depositList = res.list || []
+  depositCount = Number(res.count) || 0
+  depositAllPageCount = Math.max(1, Math.ceil(depositCount / depositPageSize))
+}
+
+getTeamDepositList()
 
 const handleBack = () => {
   router.back()
@@ -233,6 +285,96 @@ const handleBack = () => {
             span {
               flex: 1 0 0;
             }
+          }
+        }
+      }
+      .team-deposit-list {
+        margin-top: 13px;
+        min-height: 200px;
+        background: hsla(0, 0%, 100%, .1);
+        border-radius: 18px;
+        padding: 15px;
+        box-sizing: border-box;
+        .team-deposit-title {
+          margin-bottom: 10px;
+          color: rgb(255, 209, 39);
+          font-size: 16px;
+        }
+        .team-deposit-table {
+          height: 280px;
+          display: flex;
+          flex-direction: column;
+          overflow: hidden;
+          .table-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            span {
+              font-size: 12px;
+              &:nth-child(1) {
+                flex: 0 0 108px;
+                text-align: left;
+              }
+              &:nth-child(2) {
+                flex: 0 0 44px;
+                text-align: center;
+              }
+              &:nth-child(3) {
+                flex: 1;
+                min-width: 0;
+                text-align: right;
+                white-space: nowrap;
+              }
+            }
+          }
+          .table-header {
+            flex-shrink: 0;
+            border-bottom: 0.5px dashed #999;
+            padding-bottom: 10px;
+            margin-bottom: 5px;
+            .table-row span {
+              color: #999;
+            }
+          }
+          .table-body {
+            flex: 1;
+            min-height: 0;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            .table-row {
+              padding: 10px 0;
+              border-bottom: 0.5px dashed rgba(255, 255, 255, 0.1);
+            }
+          }
+          .empty {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            img {
+              width: 50px;
+              height: 50px;
+              opacity: 0.3;
+            }
+            .empty-text {
+              margin-top: 15px;
+              font-size: 14px;
+              color: rgba(255, 255, 255, 0.3);
+            }
+          }
+        }
+        .team-deposit-pagination {
+          display: flex;
+          flex-direction: row;
+          align-items: center;
+          justify-content: center;
+          gap: 12px;
+          .page-size-text {
+            flex-shrink: 0;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.5);
+            white-space: nowrap;
           }
         }
       }
