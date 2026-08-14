@@ -10,6 +10,8 @@ setToastDefaultOptions({
 })
 
 let timeSwitch: any = null//定时获取用户信息
+const isUserLocked = (status: string) => status === '用户已锁定' || status === '锁定用户'
+
 export default defineStore('person', {
   state: () => ({
     loadAccount: false,
@@ -74,7 +76,7 @@ export default defineStore('person', {
       this.address = account
       const login = async (params: any): Promise<string> => {
         let res: any = await request.post('app_server/eth_authorize', params)
-        if (res.status === '用户已锁定') throw new Error(res.status)
+        if (isUserLocked(res.status)) throw new Error(res.status)
         if (res.status === '无效的推荐码') throw new Error(res.status)
         return res.token
       }
@@ -87,8 +89,7 @@ export default defineStore('person', {
           // 判断是否直接进入系统
           this.loginSuccess(await login({ address: ETH.account, code: '', sign, noMsg: true }))
         } catch (err: any) {
-          if (err.message === '用户已锁定') {
-            showFailToast(lang('用户已锁定'));
+          if (isUserLocked(err.message)) {
             return
           }
           // 根据推荐码进入系统
@@ -215,11 +216,20 @@ export default defineStore('person', {
     async getUser() {
       const getData = async () => {
         let res: any = await request.get('app_server/user_info')
+        if (isUserLocked(res.status)) {
+          clearInterval(timeSwitch)
+          localStorage.removeItem('token')
+          localStorage.removeItem('account')
+          this.isLogin = false
+          return false
+        }
         this.userinfo = { ...this.userinfo, ...res }
+        return true
       }
       clearInterval(timeSwitch)
-      await getData()
+      if (!(await getData())) return false
       timeSwitch = setInterval(getData, 30000)
+      return true
     },
     /* 登录成功 */
     async loginSuccess(token?: string) {
@@ -227,7 +237,7 @@ export default defineStore('person', {
         localStorage.setItem('token', token)
         localStorage.setItem('account', ETH.account)
       }
-      await this.getUser()
+      if (!(await this.getUser())) return
       // await this.recommend_update();
       this.isLogin = true
       location.hash = ''

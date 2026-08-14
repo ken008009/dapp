@@ -50,7 +50,7 @@ instance.interceptors.response.use(res => {
     const noMsg = err.config.method === "post" && err.config?.data && JSON.parse(err.config.data)?.noMsg;
     const language = localStorage.getItem("language") || "zh";
 
-    if (!noMsg) {
+    if (!noMsg && message !== "锁定用户" && message !== "用户已锁定") {
         if (message) {
             showFailToast(language === "zh" ? message : reason);
         } else {
